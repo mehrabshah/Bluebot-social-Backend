@@ -1,0 +1,23 @@
+{
+  "development": {
+    "database":"bluebot",
+    "username":"root",
+    "password":"testtest",
+    "host":"localhost",
+    "dialect":"mysql"
+  },
+  "test": {
+    "database":"test",
+    "username":"root",
+    "password":"",
+    "host":"localhost",
+    "dialect":"mysql"
+  },
+  "production": {
+    "database":"test",
+    "username":"root",
+    "password":"",
+    "host":"localhost",
+    "dialect":"mysql"
+  }
+}
