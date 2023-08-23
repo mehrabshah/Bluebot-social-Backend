@@ -1,11 +1,11 @@
 const express= require('express');
 const cors = require('cors');
+const mongoose = require('mongoose')
 
 require('dotenv').config()
 const app = express();
 app.use(express.json())
 app.use(cors());
-require('./config/dbconnection')
 
 
 const authRoutes = require('./routes/auth');
@@ -19,6 +19,9 @@ const port = process.env.SERVER_PORT;
 app.get("/",(res,resp)=>{
     resp.send("Home page");
 });
+mongoose.connect('mongodb+srv://hassanshahzadvs:WvFkVLdzQ2GWJkBt@cluster0.mpfkmzl.mongodb.net/?retryWrites=true&w=majority')
+.then(()=>app.listen(8000,()=>
+console.log(`Connection ok`)))
+.catch((err)=>console.log('error',err))
 console.log("server running on port ",port)
 
-app.listen(port)

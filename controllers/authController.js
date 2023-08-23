@@ -1,14 +1,19 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt')
+const dotenv = require('dotenv')
+dotenv.config()
+const jwt = require('jsonwebtoken')
+const jwtToken = process.env.JWTPRIVATEKEY
+let refreshTokens = []
+const secret =  process.env.JWTPRIVATEKEY
 const User = require('../models/user');
-const { secret } = require('../config/jwt');
 const Joi = require('joi');
 
 const schema = Joi.object().keys({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
-  name: Joi.string().required(),
-  surname: Joi.string().required(),
+  firstName: Joi.string().required(),
+  lastName: Joi.string().required(),
+  gender: Joi.string().required(),
 });
 
 async function signup(req, res) {
@@ -21,17 +26,17 @@ async function signup(req, res) {
     const { email, password } = value;
 
     // Check if the user already exists
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(409).json({ message: 'Email already exists' });
-    }
+    // const existingUser = await User.findOne({ where: { email } });
+    // if (existingUser) {
+    //   return res.status(409).json({ message: 'Email already exists' });
+    // }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create a new user
     const user = await User.create({
-      email,
+   ...value,
       password: hashedPassword,
       role: 'USER',
     });
@@ -50,7 +55,8 @@ async function login(req, res) {
     const { email, password } = req.body;
 
     // Check if the user exists
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ email: email });
+    console.log(user)
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
