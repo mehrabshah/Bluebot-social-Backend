@@ -10,6 +10,8 @@ app.use(cors());
 
 const authRoutes = require('./routes/auth');
 app.use('/auth', authRoutes);
+const postRoutes = require('./routes/POST');
+app.use('/post', postRoutes);
 
 const cron = require('node-cron');
 
