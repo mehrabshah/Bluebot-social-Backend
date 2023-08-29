@@ -8,13 +8,107 @@
 	},
 	"item": [
 		{
+			"name": "POST",
+			"item": [
+				{
+					"name": "CREATE POST",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"text1\": \"Sample Text 1\",\r\n  \"text2\": \"Sample Text 2\",\r\n  \"text3\": \"Sample Text 3\",\r\n  \"img\": {\r\n    \"data\": \"base64EncodedImage\", // Replace with actual base64-encoded image data\r\n    \"contentType\": \"image/jpeg\"\r\n  },\r\n  \"date\": \"2023-08-29T12:00:00Z\",\r\n  \"type\": \"Sample Type\",\r\n  \"user\": \"64e5b03f49f215a186cf4469\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/post/createPost",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"post",
+								"createPost"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET POST",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"id\": \"64ee3c2e85b16b0b37b98d23\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/post/getPost/64ee3c2e85b16b0b37b98d23",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"post",
+								"getPost",
+								"64ee3c2e85b16b0b37b98d23"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET ALL POST",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"id\": \"64ee3c2e85b16b0b37b98d23\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8000/post/getAllPost/64e5b03f49f215a186cf4469",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8000",
+							"path": [
+								"post",
+								"getAllPost",
+								"64e5b03f49f215a186cf4469"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "SignUp",
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"email\": \"test@example.com\",\r\n  \"password\": \"secretpassword\",\r\n  \"name\": \"John\",\r\n  \"surname\": \"Doe\"\r\n}\r\n",
+					"raw": "{\r\n  \"email\": \"a@gmail.com\",\r\n  \"password\": \"Qwerty@123\",\r\n    \"gender\":\"Male\",\r\n    \"firstName\":\"Hassan\",\r\n    \"lastName\":\"Shahzad\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"

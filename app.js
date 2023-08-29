@@ -12,6 +12,8 @@ app.use(cors());
 const authRoutes = require('./routes/auth');
 app.use('/auth', authRoutes);
 app.use('/auth/twitter', twitterAuthRoutes);
+const postRoutes = require('./routes/POST');
+app.use('/post', postRoutes);
 
 const cron = require('node-cron');
 
