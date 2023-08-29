@@ -1,0 +1,69 @@
+{
+	"info": {
+		"_postman_id": "66fc8851-1bf5-428e-b0a1-657dc5962ced",
+		"name": "BlueBot Social",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25963691",
+		"_collection_link": "https://lively-eclipse-901314.postman.co/workspace/Office~1a78001c-0640-42d0-beeb-92f3b9f9af1d/collection/25963691-66fc8851-1bf5-428e-b0a1-657dc5962ced?action=share&source=collection_link&creator=25963691"
+	},
+	"item": [
+		{
+			"name": "SignUp",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"test@example.com\",\r\n  \"password\": \"secretpassword\",\r\n  \"name\": \"John\",\r\n  \"surname\": \"Doe\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/auth/signup",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"auth",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Log In",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"test@example.com\",\r\n  \"password\": \"secretpassword\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
