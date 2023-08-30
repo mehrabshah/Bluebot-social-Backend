@@ -13,10 +13,10 @@ async function saveOrUpdateFacebookToken(req, res) {
         const longLivedToken = response.data.access_token;
         if (existingFacebook) {
             // If the document exists, update the token
-            existingFacebook.fb_id = fb_id;
+            existingFacebook.fb_id = fb_id;  
             existingFacebook.token = longLivedToken;
             const updatedFacebook = await existingFacebook.save();
-            console.log('Facebook token updated:', updatedFacebook);
+        //    console.log('Facebook token updated:', updatedFacebook);
             res.status(200).json({ message: 'Facebook token updated', data: updatedFacebook });
         } else {
             // If the document doesn't exist, create a new one
@@ -46,7 +46,7 @@ async function getImage(req, res) {
         try {
             const response = await axios.get(`https://graph.facebook.com/${id}/picture?type=large`);
             const profileImageURL = response.request.res.responseUrl;
-            console.log(token + "image");
+          //  console.log(token + "image");
             res.json({ profileImageURL: profileImageURL, fb_id: id, token : token});
         } catch (error) {
             console.error('Error fetching user profile image:', error);
@@ -62,13 +62,20 @@ async function getAccounts(req, res) {
        const response = await axios.get(`https://graph.facebook.com/v17.0/me/accounts?access_token=${token}`);
        const data = response.data;
  
-       const accounts = data.map(account => ({
-          id: account.id,
-          name: account.name,
-          accessToken: account.access_token
+    //    const accounts = data.map(account => ({
+    //       id: account.id,
+    //       name: account.name,
+    //       accessToken: account.access_token
+    //    }));
+
+    console.log(response.data.data);
+       const idAccessTokenArray = response.data.data.map(item => ({
+        id: item.id,
+        access_token: item.access_token,
+        name: item.name
        }));
-       console.log(accounts);
-       res.json(data);
+       console.log(idAccessTokenArray);
+       res.json(idAccessTokenArray);
     } catch (error) {
        res.status(500).json({ error: 'Failed to fetch accounts.' });
     }

@@ -6,6 +6,7 @@ require('dotenv').config()
 const app = express();
 const twitterAuthRoutes = require("./controllers/twitterController");
 app.use(express.json())
+app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(cors());
 
 
