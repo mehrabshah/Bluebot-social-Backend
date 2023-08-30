@@ -47,11 +47,27 @@ const { default: mongoose } = require('mongoose');
           return res.status(500).json({ error: 'An error occurred while fetching the post.' });
         }
       }
+    async function getAllPostAdmin(req, res) {
+        try {
+
+          const post = await Post.find();
+          
+          if (!post) {
+            return res.status(404).json({ error: 'Post not found.' });
+          }
+          
+          return res.json(post);
+        } catch (error) {
+            console.log(error)
+          return res.status(500).json({ error: 'An error occurred while fetching the post.' });
+        }
+      }
       
 
 
     module.exports = {
         createPost,
         getPost,
-        getAllPost
+        getAllPost,
+        getAllPostAdmin
     };

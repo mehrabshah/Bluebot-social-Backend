@@ -5,5 +5,6 @@ const postController = require('../controllers/postController');
 router.post('/createPost', postController.createPost);
 router.post('/getPost/:id', postController.getPost);
 router.get('/getAllPost/:id', postController.getAllPost);
+router.get('/getAllPostAdmin', postController.getAllPostAdmin);
 
 module.exports = router;
