@@ -93,7 +93,8 @@ const createUser=async(req,res)=>{
     authCode:authorizationCode,
     linkedinId: sub,
     linkedinEmail: email,
-    profilePicture:picture
+    profilePicture:picture,
+    linkedinUserName:name
   });
 }
   catch(error){
