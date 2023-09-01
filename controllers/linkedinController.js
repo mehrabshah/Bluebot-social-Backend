@@ -44,7 +44,7 @@ const createLinkedinUser = async (req, res) => {
       existingLinkedinToken.tokenId = tokenId;
     }
     
-    await linkedinToken.save();
+    await LinkedinToken.save();
     
     res.json({
       accessToken: accessToken,
@@ -54,6 +54,59 @@ const createLinkedinUser = async (req, res) => {
     res.status(500).json({ error: 'Error exchanging authorization code for access token' });
   }
 };
+
+
+
+const createUser=async(req,res)=>{
+  const authorizationCode = req.body.code;
+  const userId = req.body.userId;
+  
+  const params = new URLSearchParams();
+  params.append('grant_type', 'authorization_code');
+  params.append('code', authorizationCode);
+  params.append('redirect_uri', process.env.LINKEDIN_REDIRECT_URI);
+  params.append('client_id', process.env.LINKEDIN_CLIENT_ID);
+  params.append('client_secret', process.env.LINKEDIN_CLIENT_SECRET);
+  const tokenEndpoint = 'https://www.linkedin.com/oauth/v2/accessToken';
+  let existingLinkedinProfile = await LinkedinToken.findOne({ userId });
+  console.log(existingLinkedinProfile)
+  try{
+  if (!existingLinkedinProfile) {
+    const response = await axios.post(tokenEndpoint, params);
+    const tokenId = response?.data.id_token;  
+    const {sub,name,email,picture}=jwtdecode(tokenId);
+    existingLinkedinProfile = new LinkedinToken({
+      userId: userId,
+      authCode: authorizationCode,
+      linkedinUserName: name,
+      linkedinId: sub,
+      linkedinEmail: email,
+      profilePicture: picture
+    });
+    await existingLinkedinProfile.save();
+    res.json({
+      userId: userId,
+      linkedinId: sub,
+      linkedinEmail: email,
+      profilePicture:picture,
+      name:name
+    });
+  } else { 
+    res.json({
+    userId: userId,
+    linkedinId: existingLinkedinProfile.linkedinId,
+    linkedinEmail: existingLinkedinProfile.linkedinEmail,
+    profilePicture:existingLinkedinProfile.profilePicture,
+    name:existingLinkedinProfile.linkedinUserName
+  });
+  }
+ 
+}
+  catch(error){
+    res.status(500).json({ error: 'Error getting user information' });
+  }
+}
+
 
 
 const getLinkedinTables=async(req,res)=>{
@@ -137,5 +190,6 @@ module.exports = {
   createLinkedInPost,
   createLinkedinUser,
   getLinkedinTables,
-  deleteLinkedinAccounts
+  deleteLinkedinAccounts,
+  createUser
 };

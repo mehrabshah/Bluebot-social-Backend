@@ -12,7 +12,7 @@ router.post('/save-token', facebookController.saveOrUpdateFacebookToken);
 router.post('/get-data', facebookController.getImage);
 router.post('/get-account', facebookController.getAccounts);
 router.post('/linkedin/create-post', linkedinController.createLinkedInPost); // Add the LinkedIn endpoint
-router.post('/linkedin/get-token',linkedinController.createLinkedinUser)
+router.post('/linkedin/create-linkedin-user',linkedinController.createUser)
 router.get('/linkedin/get-users',linkedinController.getLinkedinTables)
 router.delete('/linkedin/delete-users',linkedinController.deleteLinkedinAccounts)
 
