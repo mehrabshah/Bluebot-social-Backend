@@ -54,9 +54,6 @@ const createLinkedinUser = async (req, res) => {
     res.status(500).json({ error: 'Error exchanging authorization code for access token' });
   }
 };
-
-
-
 const createUser=async(req,res)=>{
   const authorizationCode = req.body.code;
   const userId = req.body.userId;
@@ -69,12 +66,11 @@ const createUser=async(req,res)=>{
   params.append('client_secret', process.env.LINKEDIN_CLIENT_SECRET);
   const tokenEndpoint = 'https://www.linkedin.com/oauth/v2/accessToken';
   let existingLinkedinProfile = await LinkedinToken.findOne({ userId });
-  console.log(existingLinkedinProfile)
   try{
-  if (!existingLinkedinProfile) {
     const response = await axios.post(tokenEndpoint, params);
     const tokenId = response?.data.id_token;  
     const {sub,name,email,picture}=jwtdecode(tokenId);
+  if (!existingLinkedinProfile) {
     existingLinkedinProfile = new LinkedinToken({
       userId: userId,
       authCode: authorizationCode,
@@ -83,31 +79,27 @@ const createUser=async(req,res)=>{
       linkedinEmail: email,
       profilePicture: picture
     });
-    await existingLinkedinProfile.save();
-    res.json({
-      userId: userId,
-      linkedinId: sub,
-      linkedinEmail: email,
-      profilePicture:picture,
-      name:name
-    });
-  } else { 
-    res.json({
-    userId: userId,
-    linkedinId: existingLinkedinProfile.linkedinId,
-    linkedinEmail: existingLinkedinProfile.linkedinEmail,
-    profilePicture:existingLinkedinProfile.profilePicture,
-    name:existingLinkedinProfile.linkedinUserName
-  });
+
+  } else {
+    existingLinkedinProfile.authCode = authorizationCode;
+    existingLinkedinProfile.linkedinUserName = name;
+    existingLinkedinProfile.linkedinId = sub;
+    existingLinkedinProfile.linkedinEmail = email;
+    existingLinkedinProfile.profilePicture = picture;
   }
- 
+  await existingLinkedinProfile.save();
+  res.json({
+    userId: userId,
+    authCode:authorizationCode,
+    linkedinId: sub,
+    linkedinEmail: email,
+    profilePicture:picture
+  });
 }
   catch(error){
     res.status(500).json({ error: 'Error getting user information' });
   }
 }
-
-
 
 const getLinkedinTables=async(req,res)=>{
   try {
