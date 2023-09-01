@@ -1,9 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const postController = require('../controllers/postController');
+const multer = require('multer');
+const path = require('path');
 
-router.post('/createPost', postController.createPost);
+// Set up storage for uploaded images
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Uploads will be stored in the 'uploads' directory
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
+router.post('/createPost',upload.single('img'), postController.createPost);
 router.post('/getPost/:id', postController.getPost);
 router.get('/getAllPost/:id', postController.getAllPost);
+router.get('/getAllPostAdmin', postController.getAllPostAdmin);
 
 module.exports = router;
