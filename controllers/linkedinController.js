@@ -1,4 +1,5 @@
 const axios = require('axios');
+const jwtdecode  = require('jwt-decode');
 const User = require('../models/user'); // Adjust the path to your User model
 const LinkedinToken = require('../models/linkedinToken'); // Import your LinkedInToken model
 const jwt = require('jsonwebtoken');
@@ -11,40 +12,64 @@ const schema = Joi.object().keys({
   linkedinAccessToken: Joi.string().required(),
 });
 
-async function saveOrUpdateLinkedinToken(req, res) {
-  const { userId, linkedinId, linkedinAccessToken } = req.body;
+
+
+const createLinkedinUser = async (req, res) => {
+  const authorizationCode = req.body.code;
+  const userId = req.body.userId;
+  
+  const params = new URLSearchParams();
+  params.append('grant_type', 'authorization_code');
+  params.append('code', authorizationCode);
+  params.append('redirect_uri', process.env.LINKEDIN_REDIRECT_URI);
+  params.append('client_id', process.env.LINKEDIN_CLIENT_ID);
+  params.append('client_secret', process.env.LINKEDIN_CLIENT_SECRET);
+  const tokenEndpoint = 'https://www.linkedin.com/oauth/v2/accessToken';
 
   try {
-    // Check if a document with the given userId already exists
-    const existingLinkedinToken = await LinkedinToken.findOne({ userId });
+    const response = await axios.post(tokenEndpoint, params);
+    const tokenId = response?.data.id_token;
+    const accessToken = response?.data.access_token;
+    
+    let existingLinkedinToken = await LinkedinToken.findOne({ userId });
 
-    if (existingLinkedinToken) {
-      // If the document exists, update the token
-      existingLinkedinToken.linkedinId = linkedinId;
-      existingLinkedinToken.accessToken = linkedinAccessToken;
-      const updatedLinkedinToken = await existingLinkedinToken.save();
-      console.log('LinkedIn token updated:', updatedLinkedinToken);
-      res.status(200).json({ message: 'LinkedIn token updated', data: updatedLinkedinToken });
-    } else {
-      // If the document doesn't exist, create a new one
-      const newLinkedinToken = new LinkedinToken({
-        userId,
-        linkedinId,
-        accessToken: linkedinAccessToken
+    if (!existingLinkedinToken) {
+      existingLinkedinToken = new LinkedinToken({
+        userId: userId,
+        accessToken: accessToken,
+        tokenId: tokenId
       });
-      const savedLinkedinToken = await newLinkedinToken.save();
-      console.log('New LinkedIn token saved:', savedLinkedinToken);
-      res.status(201).json({ message: 'New LinkedIn token saved', data: savedLinkedinToken });
+    } else {
+      existingLinkedinToken.accessToken = accessToken;
+      existingLinkedinToken.tokenId = tokenId;
     }
+    
+    await linkedinToken.save();
+    
+    res.json({
+      accessToken: accessToken,
+      tokenId: tokenId
+    });
   } catch (error) {
-    console.error('Error saving/updating LinkedIn token:', error);
-    res.status(500).json({ message: 'Error saving/updating LinkedIn token', error: error.message });
+    res.status(500).json({ error: 'Error exchanging authorization code for access token' });
+  }
+};
+
+
+const getLinkedinTables=async(req,res)=>{
+  try {
+    const linkedinAccounts = await LinkedinToken.find();
+    return res.status(200).json(linkedinAccounts);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }
 
+
 async function createLinkedInPost(req, res) {
   try {
-    const { userId, linkedinAccessToken,postData } = req.body;
+    const { userId,postData,linkedinAccessToken } = req.body;
 
     // Fetch user data from LinkedIn using the access token
     const linkedinResponse = await axios.get('https://api.linkedin.com/v2/userinfo', {
@@ -54,6 +79,7 @@ async function createLinkedInPost(req, res) {
     });
 
     // Assuming you store the LinkedIn user's ID in your User model
+    console.log('LinkedIn response:', linkedinResponse.data)
     const linkedinId = linkedinResponse.data.sub;
 
     // Fetch the user from your database using the LinkedIn ID
@@ -97,39 +123,19 @@ async function createLinkedInPost(req, res) {
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
-
-async function getLinkedinAccounts(req, res) {
+const deleteLinkedinAccounts=async(req,res)=>{
   try {
-    const { userId } = req.body;
-    const existingLinkedinToken = await LinkedinToken.findOne({ userId });
-
-    if (!existingLinkedinToken) {
-      return res.status(404).json({ message: 'LinkedIn token not found' });
-    }
-
-    const linkedinAccessToken = existingLinkedinToken.accessToken;
-
-    const response = await axios.get('https://api.linkedin.com/v2/clientsAll',
-      {
-        headers: {
-          Authorization: `Bearer ${linkedinAccessToken}`,
-        },
-      });
-
-    const accounts = response.data.elements.map(account => ({
-      id: account.entityUrn.split(':').pop(),
-      name: account.name,
-    }));
-
-    return res.json({ accounts });
+    const linkedinAccounts = await LinkedinToken.deleteMany();
+    return res.status(200).json(linkedinAccounts);
   } catch (error) {
-    console.error('Error fetching LinkedIn accounts:', error);
-    return res.status(500).json({ error: 'Error fetching LinkedIn accounts' });
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 }
 
 module.exports = {
-  saveOrUpdateLinkedinToken,
   createLinkedInPost,
-  getLinkedinAccounts,
+  createLinkedinUser,
+  getLinkedinTables,
+  deleteLinkedinAccounts
 };

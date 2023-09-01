@@ -1,8 +1,8 @@
 const express= require('express');
-const cors = require('cors');
 const mongoose = require('mongoose')
 
 require('dotenv').config()
+const cors = require('cors');
 const app = express();
 const twitterAuthRoutes = require("./controllers/twitterController");
 app.use(express.json())
@@ -28,4 +28,3 @@ mongoose.connect('mongodb+srv://shapito0786:shapito0786@cluster0.dedf7o1.mongodb
 console.log(`Connection ok`)))
 .catch((err)=>console.log('error',err))
 console.log("server running on port ",port)
-
