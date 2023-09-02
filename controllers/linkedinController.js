@@ -69,6 +69,7 @@ const createUser=async(req,res)=>{
   try{
     const response = await axios.post(tokenEndpoint, params);
     const tokenId = response?.data.id_token;  
+    const accessTokenId = response?.data.access_token;  
     const {sub,name,email,picture}=jwtdecode(tokenId);
   if (!existingLinkedinProfile) {
     existingLinkedinProfile = new LinkedinToken({
@@ -129,10 +130,6 @@ async function createLinkedInPost(req, res) {
     const linkedinId = linkedinResponse.data.sub;
 
     // Fetch the user from your database using the LinkedIn ID
-    const user = await User.findOne({ _id: userId });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
 
     // Create a post using the LinkedIn API
     const postResponse = await axios.post(

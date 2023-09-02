@@ -1,8 +1,25 @@
+const Token = require("../models/token");
+const { createLinkedInPost } = require("./linkedinController");
+
 // postScheduler.js
 const logPost = async (post) => {
   if (!post.isPosted) {
     setTimeout(async () => { 
-    console.log(`Scheduled Post:`, post);
+    // console.log(`Scheduled Post:`, post);
+    if (post.type === "LINKEDIN") {
+      try {
+        const token = await Token.findOne({ type: 'LINKEDIN', user: post.userID });
+        if (token) {
+          const linkedinAccessToken = token.token;
+          await createLinkedInPost({ postData: post, linkedinAccessToken });
+        } else {
+          console.log("LinkedIn token not found for the user.");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    } 
+    
   }, 1000);
   }
 };
