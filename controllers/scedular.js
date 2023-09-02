@@ -8,7 +8,7 @@ const logPost = async (post) => {
     // console.log(`Scheduled Post:`, post);
     if (post.type === "LINKEDIN") {
       try {
-        const token = await Token.findOne({ type: 'LINKEDIN', user: post.userID });
+        const token = await Token.findOne({ type: 'LINKEDIN', user: post.user });
         if (token) {
           const linkedinAccessToken = token.token;
           await createLinkedInPost({ postData: post, linkedinAccessToken });
