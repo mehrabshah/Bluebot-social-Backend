@@ -74,12 +74,39 @@ const upload = multer({ storage: storage });
           return res.status(500).json({ error: 'An error occurred while fetching the post.' });
         }
       }
+      async function deleteAllPosts(req, res) {
+        try {
+          await Post.deleteMany({}); // This will delete all documents in the 'Post' collection
       
+          return res.json({ message: 'All posts deleted successfully.' });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({ error: 'An error occurred while deleting all posts.' });
+        }
+      }
 
+      async function deletePostById(req, res) {
+        try {
+          const postId = req.params.id; // Assuming you pass the post ID as a parameter in the URL
+      
+          const deletedPost = await Post.findByIdAndDelete(postId);
+      
+          if (!deletedPost) {
+            return res.status(404).json({ error: 'Post not found.' });
+          }
+      
+          return res.json({ message: 'Post deleted successfully.' });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({ error: 'An error occurred while deleting the post.' });
+        }
+      }
 
     module.exports = {
         createPost,
         getPost,
         getAllPost,
-        getAllPostAdmin
+        getAllPostAdmin,
+        deleteAllPosts,
+        deletePostById
     };

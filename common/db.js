@@ -3,7 +3,7 @@ const dotenv = require('dotenv')
 
 dotenv.config()
 
-mongoose.connect('mongodb+srv://hassanshahzadvs:WvFkVLdzQ2GWJkBt@cluster0.mpfkmzl.mongodb.net/?retryWrites=true&w=majority')
+mongoose.connect('mongodb+srv://hassanshahzadvs:l5189D1ck7vu7Hhi@cluster0.kbmtfj1.mongodb.net/?retryWrites=true&w=majority')
 .then(()=>app.listen(8000,()=>
 console.log(`Connection ok`)))
 .catch((err)=>console.log('error',err))
