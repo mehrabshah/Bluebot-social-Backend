@@ -7,7 +7,7 @@ const PostsSchema = new mongoose.Schema({
   img: String,
   date: { type: Date, required: false },
   type: { type: String, required: false },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   isPosted:{type:Boolean,required:false}
 });
 

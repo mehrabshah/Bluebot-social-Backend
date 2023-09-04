@@ -1,87 +1,112 @@
-const dotenv = require('dotenv')
-dotenv.config()
-const Post = require('../models/post');
+    const dotenv = require('dotenv')
+    dotenv.config()
+    const Post = require('../models/post');
 const { default: mongoose } = require('mongoose');
 const multer = require('multer');
 const fs = require('fs');
-const storage = multer.memoryStorage();
+const storage = multer.memoryStorage(); 
 const upload = multer({ storage: storage });
 
 
-async function createPost(req, res) {
-  try {
-    const { text1: text1, text2: text2, text3: text3, img: img, date: date, type: type, userId: userId, isPosted: isPosted } = req.body;
-    //   const postData = req.body;
+    async function createPost(req, res) {
+        try {
+          const postData = req.body;
+    
+          if (req.file && fs.existsSync(req.file.path)) {
+            postData.img = req.file.path;
+          }
+          const newPost = await Post.create(postData);
+          return res.status(201).json(newPost);
+        } catch (error) {
+          console.log(error)
+          return res.status(500).json({ error: 'An error occurred while creating the post.' });
+        }
+      }
+      
 
-    if (req.file && fs.existsSync(req.file.path)) {
-      img = req.file.path;
-    }
-    const newPost = new Post({ text1: text1, text2: text2, text3: text3, img: img, date: date, type: type, userId: userId, isPosted: isPosted });
-    const response = await newPost.save();
-    res.status(201).json(response);
-  } catch (error) {
-    console.log(error)
-    res.status(500).json({ error: 'An error occurred while creating the post.' });
-  }
-}
+    async function getPost(req, res) {
+        try {
+            const id = req.params.id;  
+            console.log(id)
+          const post = await Post.findById(id);
+          
+          if (!post) {
+            return res.status(404).json({ error: 'Post not found.' });
+          }
+          if (post.img && post.img.data) {
+            res.contentType(post.img.contentType);
+            return res.send(post.img.data);
+          }
+          return res.json(post);
+        } catch (error) {
+            console.log(error)
+          return res.status(500).json({ error: 'An error occurred while fetching the post.' });
+        }
+      }
+    async function getAllPost(req, res) {
+        try {
+            const userId = req.params.id; 
 
+          const post = await Post.find({ user: userId });
+          
+          if (!post) {
+            return res.status(404).json({ error: 'Post not found.' });
+          }
+          
+          return res.json(post);
+        } catch (error) {
+            console.log(error)
+          return res.status(500).json({ error: 'An error occurred while fetching the post.' });
+        }
+      }
+    async function getAllPostAdmin(req, res) {
+        try {
 
-async function getPost(req, res) {
-  try {
-    const id = req.params.id;
-    console.log(id)
-    const post = await Post.findById(id);
+          const post = await Post.find();
+          
+          if (!post) {
+            return res.status(404).json({ error: 'Post not found.' });
+          }
+          
+          return res.json(post);
+        } catch (error) {
+            console.log(error)
+          return res.status(500).json({ error: 'An error occurred while fetching the post.' });
+        }
+      }
+      async function deleteAllPosts(req, res) {
+        try {
+          await Post.deleteMany({}); // This will delete all documents in the 'Post' collection
+      
+          return res.json({ message: 'All posts deleted successfully.' });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({ error: 'An error occurred while deleting all posts.' });
+        }
+      }
 
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found.' });
-    }
-    if (post.img && post.img.data) {
-      res.contentType(post.img.contentType);
-      return res.send(post.img.data);
-    }
-    return res.json(post);
-  } catch (error) {
-    console.log(error)
-    return res.status(500).json({ error: 'An error occurred while fetching the post.' });
-  }
-}
-async function getAllPost(req, res) {
-  try {
-    const userId = req.params.id;
+      async function deletePostById(req, res) {
+        try {
+          const postId = req.params.id; // Assuming you pass the post ID as a parameter in the URL
+      
+          const deletedPost = await Post.findByIdAndDelete(postId);
+      
+          if (!deletedPost) {
+            return res.status(404).json({ error: 'Post not found.' });
+          }
+      
+          return res.json({ message: 'Post deleted successfully.' });
+        } catch (error) {
+          console.log(error);
+          return res.status(500).json({ error: 'An error occurred while deleting the post.' });
+        }
+      }
 
-    const post = await Post.find({ user: userId });
-
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found.' });
-    }
-
-    return res.json(post);
-  } catch (error) {
-    console.log(error)
-    return res.status(500).json({ error: 'An error occurred while fetching the post.' });
-  }
-}
-async function getAllPostAdmin(req, res) {
-  try {
-
-    const post = await Post.find();
-
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found.' });
-    }
-
-    return res.json(post);
-  } catch (error) {
-    console.log(error)
-    return res.status(500).json({ error: 'An error occurred while fetching the post.' });
-  }
-}
-
-
-
-module.exports = {
-  createPost,
-  getPost,
-  getAllPost,
-  getAllPostAdmin
-};
+    module.exports = {
+        createPost,
+        getPost,
+        getAllPost,
+        getAllPostAdmin,
+        deleteAllPosts,
+        deletePostById
+    };
