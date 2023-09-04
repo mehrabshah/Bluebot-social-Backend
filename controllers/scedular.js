@@ -25,8 +25,8 @@ const logPost = async (post) => {
     //  console.log("facebook");
     //  console.log(post);
       try{
-        console.log(post.userId);
-        const token  = await getToken({ body: { userId: post.userId } });
+        console.log(post.user);
+        const token  = await getToken({ body: { user: post.userId } });
         await postFacebook({ body: { token: token, text : post.text1 } });
        // await getFBID({ body: { userId: post.userId } });
        // console.log(response);
