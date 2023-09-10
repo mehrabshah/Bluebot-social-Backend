@@ -23,10 +23,16 @@ app.get("/",(res,resp)=>{
 });
 mongoose.connect('mongodb+srv://shapito0786:shapito0786@cluster0.dedf7o1.mongodb.net/')
 .then(() => {
-    cron.schedule('*/5 * * * * *', () => {
-        schedulePosts(Post);
-      // console.log('Running scheduled task...');
-    });
+
+  schedulePosts.serverScheduler(Post)
+    // cron.schedule('*/5 * * * * *', async() => {
+    //   // console.log(Post)
+    //   const currentDate = new Date();
+    //   const scheduledPostList = await Post.find({ date: { $gt: currentDate } });
+    //   console.log(scheduledPostList)
+    //     schedulePosts(Post);
+    //   // console.log('Running scheduled task...');
+    // });
     app.listen(port, () => console.log(`Server running on port ${port}`));
   })
   .catch((err) => console.log('Error connecting to MongoDB:', err));
