@@ -12,19 +12,30 @@ const {logPost} =require("./scedular")
     async function createPost(req, res) {
         try {
           const postData = req.body;
+          console.log(postData)
     
+          console.log(req.file,"--------------")
           if (req.file && fs.existsSync(req.file.path)) {
             postData.img = req.file.path;
           }
           const newPost = await Post.create(postData);
           const date = new Date(postData.date)
-          const cronDate = `${date.getUTCMinutes()} ${date.getUTCHours()+5} ${date.getUTCDate()} ${date.getUTCMonth() + 1} *`;
+          let cronDate = `${date.getUTCMinutes()} ${date.getUTCHours()+5} ${date.getUTCDate()} ${date.getUTCMonth() + 1} *`;
     
           console.log(cronDate,"--------------------------")
+          console.log(cronDate,"--------------------------")
+          // cronDate="*/5 * * * * *"
+          // // const job =  schedule.scheduleJob(cronDate, async() => {
+         
+               
+          //   await logPost(newPost); 
+          //   await Post.updateOne({ _id: newPost._id }, { isPosted: true }); 
+          //   console.log("scheduled post by API---------------",newPost)
+     
           const job =  schedule.scheduleJob(cronDate, async() => {
-        
-            
-            await logPost(newPost);
+         
+               
+            await logPost(newPost); 
             await Post.updateOne({ _id: newPost._id }, { isPosted: true }); 
             console.log("scheduled post by API---------------",newPost)
             job.cancel()
@@ -32,7 +43,7 @@ const {logPost} =require("./scedular")
           })
           return res.status(201).json(newPost);
         } catch (error) {
-          console.log(error.data)
+          console.log(error)
           return res.status(500).json({ error: 'An error occurred while creating the post.' });
         }
       }
