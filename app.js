@@ -12,7 +12,7 @@ app.use(cors());
 const authRoutes = require('./routes/auth');
 app.use('/auth', authRoutes);
 app.use('/auth/twitter', twitterAuthRoutes);
-const postRoutes = require('./routes/POST');
+const postRoutes = require('./routes/post');
 const schedulePosts = require('./controllers/scedular');
 const Post = require('./models/post');
 app.use('/post', postRoutes);
