@@ -6,7 +6,8 @@ const multer = require('multer');
 const fs = require('fs');
 const storage = multer.memoryStorage(); 
 const upload = multer({ storage: storage });
-
+const schedule = require('node-schedule');
+const {logPost} =require("./scedular")
 
     async function createPost(req, res) {
         try {
@@ -16,9 +17,22 @@ const upload = multer({ storage: storage });
             postData.img = req.file.path;
           }
           const newPost = await Post.create(postData);
+          const date = new Date(postData.date)
+          const cronDate = `${date.getUTCMinutes()} ${date.getUTCHours()+5} ${date.getUTCDate()} ${date.getUTCMonth() + 1} *`;
+    
+          console.log(cronDate,"--------------------------")
+          const job =  schedule.scheduleJob(cronDate, async() => {
+        
+            
+            await logPost(newPost);
+            await Post.updateOne({ _id: newPost._id }, { isPosted: true }); 
+            console.log("scheduled post by API---------------",newPost)
+            job.cancel()
+      
+          })
           return res.status(201).json(newPost);
         } catch (error) {
-          console.log(error)
+          console.log(error.data)
           return res.status(500).json({ error: 'An error occurred while creating the post.' });
         }
       }

@@ -44,7 +44,7 @@ const createLinkedinUser = async (req, res) => {
       existingLinkedinToken.tokenId = tokenId;
     }
     
-    await LinkedinToken.save();
+    await LinkedinToken.save(existingLinkedinToken);
     
     res.json({
       accessToken: accessToken,
@@ -66,11 +66,17 @@ const createUser=async(req,res)=>{
   params.append('client_secret', process.env.LINKEDIN_CLIENT_SECRET);
   const tokenEndpoint = 'https://www.linkedin.com/oauth/v2/accessToken';
   let existingLinkedinProfile = await LinkedinToken.findOne({ userId });
+  // let existingLinkedinProfile = null;
   try{
     const response = await axios.post(tokenEndpoint, params);
+    console.log("------------")
+    console.log("------------")
+    console.log(response)
+    console.log("------------")
     const tokenId = response?.data.id_token;  
     const accessTokenId = response?.data.access_token;  
-    const {sub,name,email,picture}=jwtdecode(tokenId);
+    const {sub,name,email,picture,accessToken}=jwtdecode(tokenId);
+    console.log("ACCESS TOKEN",accessToken)
   if (!existingLinkedinProfile) {
     existingLinkedinProfile = new LinkedinToken({
       userId: userId,
@@ -78,7 +84,8 @@ const createUser=async(req,res)=>{
       linkedinUserName: name,
       linkedinId: sub,
       linkedinEmail: email,
-      profilePicture: picture
+      profilePicture: picture,
+      token:accessTokenId
     });
 
   } else {
@@ -87,6 +94,7 @@ const createUser=async(req,res)=>{
     existingLinkedinProfile.linkedinId = sub;
     existingLinkedinProfile.linkedinEmail = email;
     existingLinkedinProfile.profilePicture = picture;
+    existingLinkedinProfile.token = accessTokenId
   }
   await existingLinkedinProfile.save();
   res.json({
@@ -95,10 +103,12 @@ const createUser=async(req,res)=>{
     linkedinId: sub,
     linkedinEmail: email,
     profilePicture:picture,
-    linkedinUserName:name
+    linkedinUserName:name,
+    accessToken:response?response.data.access_token:"ERROR"
   });
 }
   catch(error){
+    console.log(error)
     res.status(500).json({ error: 'Error getting user information' });
   }
 }
@@ -166,6 +176,61 @@ async function createLinkedInPost(req, res) {
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+async function createLinkedInPostGlobal(req, res) {
+  try {
+    const { userId,postData,linkedinAccessToken } = req.body;
+
+    // Fetch user data from LinkedIn using the access token
+    const linkedinResponse = await axios.get('https://api.linkedin.com/v2/userinfo', {
+      headers: {
+        Authorization: `Bearer ${linkedinAccessToken}`,
+      },
+    });
+
+    // Assuming you store the LinkedIn user's ID in your User model
+    console.log('LinkedIn response:', linkedinResponse.data)
+    const linkedinId = linkedinResponse.data.sub;
+
+    // Fetch the user from your database using the LinkedIn ID
+
+    // Create a post using the LinkedIn API
+    const postResponse = await axios.post(
+      'https://api.linkedin.com/v2/ugcPosts',
+      {
+        "author": `urn:li:person:${linkedinId}`,
+        "lifecycleState": "PUBLISHED",
+        "specificContent": {
+            "com.linkedin.ugc.ShareContent": {
+                "shareCommentary": {
+                    "text": `${postData}`
+                },
+                "shareMediaCategory": "NONE"
+            }
+        },
+        "visibility": {
+            "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
+        }
+    },
+      {
+        headers: {
+          Authorization: `Bearer ${linkedinAccessToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return true
+    // return res.status(201).json({
+    //   message: 'LinkedIn post created successfully',
+    //   post: postResponse.data,
+    // });
+  } catch (error) {
+    console.error(error);
+    // return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 const deleteLinkedinAccounts=async(req,res)=>{
   try {
     const linkedinAccounts = await LinkedinToken.deleteMany();
@@ -177,8 +242,9 @@ const deleteLinkedinAccounts=async(req,res)=>{
 }
 
 module.exports = {
-  createLinkedInPost,
   createLinkedinUser,
+  createLinkedInPost,
+  createLinkedInPostGlobal,
   getLinkedinTables,
   deleteLinkedinAccounts,
   createUser

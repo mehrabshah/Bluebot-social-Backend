@@ -7,6 +7,7 @@ const linkedinSchema = new mongoose.Schema({
   profilePicture: { type: String, required: true },
   linkedinEmail: { type: String, required: true },
   linkedinUserName: { type: String, required: true },
+  token: { type: String, required: true },
 });
 
 const LinkedinToken = mongoose.model('LinkedinToken', linkedinSchema);
