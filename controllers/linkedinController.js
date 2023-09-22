@@ -22,7 +22,7 @@ const createLinkedinUser = async (req, res) => {
   const params = new URLSearchParams();
   params.append('grant_type', 'authorization_code');
   params.append('code', authorizationCode);
-  params.append('redirect_uri', process.env.LINKEDIN_REDIRECT_URI);
+  params.append('redirect_uri', process.env.REDIRECT_URI);
   params.append('client_id', process.env.LINKEDIN_CLIENT_ID);
   params.append('client_secret', process.env.LINKEDIN_CLIENT_SECRET);
   const tokenEndpoint = 'https://www.linkedin.com/oauth/v2/accessToken';
@@ -62,7 +62,7 @@ const createUser = async (req, res) => {
   const params = new URLSearchParams();
   params.append('grant_type', 'authorization_code');
   params.append('code', authorizationCode);
-  params.append('redirect_uri', process.env.LINKEDIN_REDIRECT_URI);
+  params.append('redirect_uri', process.env.REDIRECT_URI);
   params.append('client_id', process.env.LINKEDIN_CLIENT_ID);
   params.append('client_secret', process.env.LINKEDIN_CLIENT_SECRET);
   const tokenEndpoint = 'https://www.linkedin.com/oauth/v2/accessToken';
