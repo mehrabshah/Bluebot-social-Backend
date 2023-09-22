@@ -92,7 +92,7 @@ const createUser = async (req, res) => {
       Authorization: `Bearer ${accessTokenId}`
     }
     const apiResponse = await axios.get(`${apiBaseURL}/v5/user_account`, { headers });
-
+console.log(apiResponse)
     const userName = apiResponse.data.business_name;
     const profileImage = apiResponse.data.profile_image
     const pinterestId = apiResponse.data.id

@@ -6,7 +6,7 @@ const pinterestSchema = new mongoose.Schema({
   pinterestId: { type: String, required: true },
   profilePicture: { type: String, required: true },
   pinterestEmail: { type: String, required: true },
-  pinterestUserName: { type: String, required: true },
+  pinterestUserName: { type: String, required: false },
   token: { type: String, required: true },
 });
 
