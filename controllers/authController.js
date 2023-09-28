@@ -12,8 +12,8 @@ const schema = Joi.object().keys({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
   firstName: Joi.string().required(),
-  lastName: Joi.string().required(),
-  gender: Joi.string().required(),
+  // lastName: Joi.string().required(),
+  // gender: Joi.string().required(),
 });
 
 async function signup(req, res) {
