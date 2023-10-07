@@ -8,7 +8,6 @@ const schedule = require('node-schedule');
 
 // postScheduler.js
 const logPost = async (post) => {
-  console.log(post)
   if (!post.isPosted) {
     // setTimeout(async () => { 
     // console.log(`Scheduled Post:`, post);

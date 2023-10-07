@@ -9,7 +9,7 @@ const fs = require('fs')
 const Joi = require('joi');
 const { post } = require('./twitterController');
 
-const apiBaseURL='https://api-sandbox.pinterest.com'
+const apiBaseURL = 'https://api-sandbox.pinterest.com'
 
 const schema = Joi.object().keys({
   pinterestAccessToken: Joi.string().required(),
@@ -92,7 +92,7 @@ const createUser = async (req, res) => {
       Authorization: `Bearer ${accessTokenId}`
     }
     const apiResponse = await axios.get(`${apiBaseURL}/v5/user_account`, { headers });
-console.log(apiResponse)
+    console.log(apiResponse.data)
     const userName = apiResponse.data.business_name;
     const profileImage = apiResponse.data.profile_image
     const pinterestId = apiResponse.data.id
@@ -152,10 +152,38 @@ const getPinBoards = async (req, res) => {
       Authorization: `Bearer ${existingPinterestProfile.token}`
     }
 
-    const boardApiResponse = await axios.get(`${apiBaseURL}/v5/boards`,{ headers })
+    const boardApiResponse = await axios.get(`${apiBaseURL}/v5/boards`, { headers })
     return res.status(200).json(boardApiResponse.data);
   } catch (error) {
     console.error(error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+const createPinBoard = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const boardName = req.body.boardName;
+    const boardDesc = req.body.boardDesc;
+    const boardPrivacy = req.body.boardPrivacy;
+    let existingPinterestProfile = await PinterestToken.findOne({ userId });
+    const headers = {
+      Authorization: `Bearer ${existingPinterestProfile.token}`
+    }
+
+    const boardApiResponse = await axios.post(`${apiBaseURL}/v5/boards`,
+      {
+        "name": `${boardName}`,
+        "description": `${boardDesc}`,
+        "privacy": `${boardPrivacy}`
+      },
+      { headers })
+    return res.status(200).json(boardApiResponse.data);
+  } catch (error) {
+    console.error(error);
+    if(error.response.data.code === 58) {
+      return res.status(500).json(error.response.data);
+    }
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
@@ -381,5 +409,6 @@ module.exports = {
   getPinterestTables,
   deletePinterestAccounts,
   createUser,
-  getPinBoards
+  getPinBoards,
+  createPinBoard
 };
