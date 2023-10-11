@@ -8,22 +8,19 @@ const twitterClientId = process.env.TWIITER_CLIENT_ID; // Your Twitter client ID
 const fs = require('fs')
 const Joi = require('joi');
 const { post } = require('./twitterController');
+const schedule = require('node-schedule');
 
 const { Client, auth } = require("twitter-api-sdk");
 
-const authClient = new auth.OAuth2User({
+let authClient = new auth.OAuth2User({
   client_id: process.env.TWITTER_CLIENT_ID,
   client_secret: process.env.TWITTER_CLIENT_SECRET,
-  callback: "https://www.bluebotsocial.com/dashboard",
+  callback: process.env.REDIRECT_URI,
   scopes: ["tweet.read", "tweet.write", "users.read", "offline.access"],
 });
 
 const twitterClient = new Client(authClient);
 
-const authUrl = authClient.generateAuthURL({
-  state: "skjdfhjsf24754fsdf",
-  code_challenge_method: "s256",
-});
 
 const requestToken = async () => {
 
@@ -31,54 +28,11 @@ const requestToken = async () => {
   console.log(twitterAccessToken);
 }
 
-// requestToken();
-
-const createTwitterUser = async (req, res) => {
-  const authorizationCode = req.body.code;
-  const userId = req.body.userId;
-
-  const params = new URLSearchParams();
-  params.append('grant_type', 'authorization_code');
-  params.append('code', authorizationCode);
-  params.append('redirect_uri', process.env.REDIRECT_URI);
-  params.append('client_id', process.env.TWIITER_API_KEY);
-  params.append('client_secret', process.env.TWITTER_API_SECRET_KEY);
-  const tokenEndpoint = 'https://api.twitter.com/oauth/request_token';
-
-  try {
-    const response = await axios.post(tokenEndpoint, params);
-    const tokenId = response?.data.id_token;
-    const accessToken = response?.data.access_token;
-
-    let existingTwitterToken = await TwitterToken.findOne({ userId });
-
-    if (!existingTwitterToken) {
-      existingTwitterToken = new TwitterToken({
-        userId: userId,
-        accessToken: accessToken,
-        tokenId: tokenId
-      });
-    } else {
-      existingTwitterToken.accessToken = accessToken;
-      existingTwitterToken.tokenId = tokenId;
-    }
-
-    await TwitterToken.save(existingTwitterToken);
-
-    res.json({
-      accessToken: accessToken,
-      tokenId: tokenId
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Error exchanging authorization code for access token' });
-  }
-};
-
 const getTwitterAuthUrl = async (req, res) => {
   const authUrl = authClient.generateAuthURL({
     state: "skjdfhjsf24754fsdf",
     code_challenge_method: "s256",
-  });
+  }); 
 
   if (authUrl) {
     res.json({
@@ -87,10 +41,36 @@ const getTwitterAuthUrl = async (req, res) => {
   }
 };
 
+const uploadImageToTwitter = async (imageFile) => {
+  const headers = {
+    Authorization: `Bearer ${authClient.token.access_token}`,
+  };
+
+  // const formData = new FormData();
+  // formData.append('media', imageFile);
+
+  const response = await axios.post('https://upload.twitter.com/1.1/media/upload.json', {
+    headers,
+    params: {
+      command: 'INIT',
+      media_category: 'tweet_image',
+      media_data: `${imageFile}`
+    },
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`Failed to upload image to Twitter: ${response.status}`);
+  }
+
+  const jsonResponse = await response.data;
+
+  return jsonResponse.media_id;
+};
+
 const createUser = async (req, res) => {
   const authorizationCode = req.body.code;
   const userId = req.body.userId;
-  
+
   let existingTwitterProfile = await TwitterToken.findOne({ userId })
 
   try {
@@ -149,30 +129,48 @@ const createUser = async (req, res) => {
 
 async function createTwitterPost(req, res) {
   try {
-    const tweetContent = req.body.postData.title
+    
+
+    const postData = req.body.postData
     const userId = req.body.userId
-    // const tweetResponse = await axios.post('https://api.twitter.com/2/tweets', {
-    //   text: "Pakisatn"
-    // }, {})
+    const date = new Date(postData.date)
+    let cronDate = `${date.getUTCMinutes()} ${date.getUTCHours()+5} ${date.getUTCDate()} ${date.getUTCMonth() + 1} *`;
 
-    // console.log(tweetResponse)
+    // const base64Image = postData.img.split(",");
+    // const imageType = base64Image[0].split(":")[1].split(";")[0]; 
+
     const existingTwitterProfile = await TwitterToken.findOne({ userId })
+    if (authClient.token === undefined || authClient.token === null) {
+      authClient.token = existingTwitterProfile.authClient.token
+      const isAccessTokenExpired = await authClient.isAccessTokenExpired();
+      if (isAccessTokenExpired) {
+        // const response = await authClient.refreshAccessToken();
+      }
+    }
 
-    // const response = await authClient.requestAccessToken(existingTwitterProfile.authCode);
+    // const mediaId = await uploadImageToTwitter(base64Image[1]);
+    // console.log(mediaId)
+    const job =  schedule.scheduleJob(cronDate, async() => {
+         
+               
+   
+      const postTweet = await twitterClient.tweets.createTweet({
+        // The text of the Tweet
+        text: `${postData.title}`,
+  
+        // media: {"media_data": `${base64Image[1]}`},
+  
+        // Options for a Tweet with a poll
+        // poll: {
+        //   options: ["Yes", "Maybe", "No"],
+        //   duration_minutes: 120,
+        // },
+      });
+      job.cancel()
 
-    // const response = await authClient.requestAccessToken(existingTwitterProfile.authCode);
+    })
 
-    const postTweet = await twitterClient.tweets.createTweet({
-      // The text of the Tweet
-      text: `${tweetContent}`,
-
-      // Options for a Tweet with a poll
-      // poll: {
-      //   options: ["Yes", "Maybe", "No"],
-      //   duration_minutes: 120,
-      // },
-    });
-    console.log(postTweet)
+    // console.log(postTweet)
     res.status(201).json({ message: "Tweet Posted Successfully" });
   } catch (error) {
     console.log(error);
@@ -320,10 +318,9 @@ const deleteTwitterAccounts = async (req, res) => {
 }
 
 module.exports = {
-  createTwitterUser,
+  getTwitterAuthUrl,
+  createUser,
   createTwitterPost,
   createTwitterPostGlobal,
   deleteTwitterAccounts,
-  createUser,
-  getTwitterAuthUrl,
 };

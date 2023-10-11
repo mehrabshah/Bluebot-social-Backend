@@ -8,6 +8,7 @@ const pinterestClientId = process.env.PINTEREST_CLIENT_ID; // Your Pinterest cli
 const fs = require('fs')
 const Joi = require('joi');
 const { post } = require('./twitterController');
+const schedule = require('node-schedule');
 
 const apiBaseURL = 'https://api-sandbox.pinterest.com'
 
@@ -192,6 +193,11 @@ const createPinBoard = async (req, res) => {
 async function createPinterestPost(req, res) {
   try {
     const { userId, postData } = req.body;
+    const date = new Date(postData.date)
+    let cronDate = `${date.getUTCMinutes()} ${date.getUTCHours()+5} ${date.getUTCDate()} ${date.getUTCMonth() + 1} *`;
+
+    console.log(cronDate,"--------------------------")
+    console.log(cronDate,"--------------------------")
 
     const accessToken = await PinterestToken.findOne({ userId });
 
@@ -203,48 +209,47 @@ async function createPinterestPost(req, res) {
       },
     });
 
-    // const createBoardResponse = await axios.post(`${apiBaseURL}/v5/boards`,
-    //   {
-    //     "name": "Summer Recipes",
-    //     "description": "My favorite summer recipes",
-    //     "privacy": "PUBLIC"
-    //   }, 
-    //   {
-    //   headers: {
-    //     Authorization: `Bearer ${accessToken.token}`,
-    //     'Content-Type': 'application/json'
-    //   },
-    // });
-
     console.log(pinterestResponse)
     // console.log(createBoardResponse)
     // Fetch the user from your database using the Pinterest ID
 
     console.log("Pinterest Post Data: " + postData)
     // Create a post using the Pinterest API
-    const postResponse = await axios.post(
-      `${apiBaseURL}/v5/pins`,
-      {
-        "title": `${postData.title}`,
-        "description": `${postData.desc}`,
-        "board_id": `${postData.pinBoard}`,
-        "media_source": {
-          "source_type": "image_url",
-          // "url": `${postData.img}`
-          "url": `https://www.recipetineats.com/wp-content/uploads/2022/08/Stack-of-cheeseburgers.jpg`
-        }
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken.token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const base64Image = postData.img.split(",");
+    const imageType = base64Image[0].split(":")[1].split(";")[0];
 
-    return res.status(201).json({
+    const job =  schedule.scheduleJob(cronDate, async() => {
+         
+               
+      const postResponse = await axios.post(
+        `${apiBaseURL}/v5/pins`,
+        {
+          "title": `${postData.title}`,
+          "description": `${postData.desc}`,
+          "board_id": `${postData.pinBoard}`,
+          "media_source": {
+            "source_type": "image_base64",
+            "content_type": `${imageType}`,
+            "data": `${base64Image[1]}`,
+            "is_standard": true
+            // "url": `https://www.recipetineats.com/wp-content/uploads/2022/08/Stack-of-cheeseburgers.jpg`
+          }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken.token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      
+      job.cancel()
+
+    })
+
+    return res.status(200).json({
       message: 'Pinterest post created successfully',
-      post: postResponse.data,
+      post: {},
     });
   } catch (error) {
     console.error(error);
