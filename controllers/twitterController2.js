@@ -134,7 +134,7 @@ async function createTwitterPost(req, res) {
     const postData = req.body.postData
     const userId = req.body.userId
     const date = new Date(postData.date)
-    let cronDate = `${date.getUTCMinutes()} ${date.getUTCHours()+5} ${date.getUTCDate()} ${date.getUTCMonth() + 1} *`;
+    // let cronDate = `${date.getUTCMinutes()} ${date.getUTCHours()+5} ${date.getUTCDate()} ${date.getUTCMonth() + 1} *`;
 
     // const base64Image = postData.img.split(",");
     // const imageType = base64Image[0].split(":")[1].split(";")[0]; 
@@ -144,16 +144,16 @@ async function createTwitterPost(req, res) {
       authClient.token = existingTwitterProfile.authClient.token
       const isAccessTokenExpired = await authClient.isAccessTokenExpired();
       if (isAccessTokenExpired) {
-        // const response = await authClient.refreshAccessToken();
+        // const response = await authClient.refreshAccessToken(); 
       }
     }
 
     // const mediaId = await uploadImageToTwitter(base64Image[1]);
     // console.log(mediaId)
-    const job =  schedule.scheduleJob(cronDate, async() => {
+    const job =  schedule.scheduleJob(date, async() => {
          
                
-   
+   console.log("running---------------")
       const postTweet = await twitterClient.tweets.createTweet({
         // The text of the Tweet
         text: `${postData.title}`,
@@ -171,7 +171,7 @@ async function createTwitterPost(req, res) {
     })
 
     // console.log(postTweet)
-    res.status(201).json({ message: "Tweet Posted Successfully" });
+   return res.status(201).json({ message: "Tweet Posted Successfully" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: 'Error Posting Tweet' });
