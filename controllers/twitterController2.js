@@ -133,7 +133,7 @@ async function createTwitterPost(req, res) {
 
     const postData = req.body.postData
     const userId = req.body.userId
-    const date = new Date(postData.date)
+    let date = new Date(postData.date)
     // let cronDate = `${date.getUTCMinutes()} ${date.getUTCHours()+5} ${date.getUTCDate()} ${date.getUTCMonth() + 1} *`;
 
     // const base64Image = postData.img.split(",");
@@ -150,6 +150,7 @@ async function createTwitterPost(req, res) {
 
     // const mediaId = await uploadImageToTwitter(base64Image[1]);
     // console.log(mediaId)
+date="*/10 * * * * *"
     const job =  schedule.scheduleJob(date, async() => {
          
                
